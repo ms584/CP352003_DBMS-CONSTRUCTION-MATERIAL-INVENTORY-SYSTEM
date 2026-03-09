@@ -2,6 +2,19 @@
     <?php
 session_start();
 include("../../db.php");
+
+// อัปเดตสถานะการชำระเงิน: ค้างชำระ → ชำระแล้ว
+if(isset($_GET['confirm_pay']) && is_numeric($_GET['confirm_pay'])) {
+    $sale_id_pay = intval($_GET['confirm_pay']);
+    $update_sql = "UPDATE sales SET payment_status = 'ชำระแล้ว' WHERE sale_id = '$sale_id_pay'";
+    if(mysqli_query($con, $update_sql)) {
+        echo "<script>alert('อัปเดตสถานะเป็น ชำระแล้ว เรียบร้อย!'); window.location.href='salesofday.php';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Error: " . mysqli_error($con) . "');</script>";
+    }
+}
+
 include "sidenav.php";
 include "topheader.php";
 ?>
@@ -71,7 +84,18 @@ include "topheader.php";
                             echo "<td class='text-primary'><b>" . number_format($row['total_amount'], 2) . "</b></td>";
                             
                             //  3. นำตัวแปร $status_badge มาแสดงในคอลัมน์ที่ 6
-                            echo "<td>" . $status_badge . "</td>";
+                            echo "<td>" . $status_badge;
+                            // ถ้าค้างชำระ แสดงปุ่มยืนยันชำระเงิน
+                            if($row['payment_status'] != 'ชำระแล้ว') {
+                                echo "<br><a href='salesofday.php?confirm_pay=".$row['sale_id']."' 
+                                           class='btn btn-success btn-sm mt-1' 
+                                           style='font-size:11px; padding:3px 8px;'
+                                           onclick='return confirm(\"ยืนยันว่าลูกค้าชำระเงินแล้วใช่ไหม?\")'>
+                                        <i class='material-icons' style='font-size:14px;vertical-align:middle;'>check_circle</i>
+                                        ยืนยันชำระเงิน
+                                      </a>";
+                            }
+                            echo "</td>";
                             
                             echo "<td>
                               <a href='view_bill.php?sale_id=".$row['sale_id']."' class='btn btn-sm btn-info'><i class='material-icons'>visibility</i> ดูรายการสินค้า</a>
