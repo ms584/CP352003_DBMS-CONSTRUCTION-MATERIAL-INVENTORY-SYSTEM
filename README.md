@@ -42,3 +42,13 @@
 | แก้ไข Error: `Warning Undefined array key 'customer_type'` | `customers_list.php` |
 
 ---
+
+# Role
+
+```
+INSERT INTO `employees` (`username`, `password`, `full_name`, `role`) VALUES
+('admin',    'admin1234',   'ผู้ดูแลระบบ',   'Admin'),
+('manager',  'manager1234', 'ผู้จัดการ',      'Manager'),
+('cashier',  'cashier1234', 'พนักงานแคชเชียร์', 'Cashier'),
+('stock',    'stock1234',   'พนักงานสต็อก',   'Stock');
+```
