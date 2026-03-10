@@ -98,6 +98,16 @@ include "topheader.php";
     select.form-control {
         color: #ffffff !important; 
     }
+
+    /* ช่องราคาต่อหน่วย - สีเข้มตามธีม */
+    input.form-control.price-input {
+        background-color: #1a1a2e !important;
+        color: #ffffff !important;
+        border: 1px solid #444 !important;
+    }
+    input.form-control.price-input::placeholder {
+        color: #888 !important;
+    }
 </style>
 
 <div class="content">

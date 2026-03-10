@@ -2,13 +2,9 @@
 session_start();
 include("../../db.php"); 
 
-
 // ระบบจัดการ "ลบสินค้า"
-
 if(isset($_GET['delete_id'])){
     $del_id = $_GET['delete_id'];
-    
-    // ลบข้อมูลออกจากฐานข้อมูล
     $delete_query = "DELETE FROM products WHERE product_id = '$del_id'";
     if(mysqli_query($con, $delete_query)){
         echo "<script>alert('ลบรายการสินค้าเรียบร้อยแล้ว!'); window.location.href='products_list.php';</script>";
@@ -16,7 +12,23 @@ if(isset($_GET['delete_id'])){
         echo "<script>alert('ไม่สามารถลบได้ เนื่องจากสินค้านี้อาจมีประวัติการรับเข้า/เบิกออกผูกอยู่'); window.location.href='products_list.php';</script>";
     }
 }
-// --------------------------------------------------
+
+// ===== SORT LOGIC =====
+$allowed_sort = ['selling_price', 'stock_qty'];
+$allowed_dir  = ['asc', 'desc'];
+
+$sort_col = isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sort) ? $_GET['sort'] : 'product_id';
+$sort_dir = isset($_GET['dir'])  && in_array($_GET['dir'],  $allowed_dir)  ? $_GET['dir']  : 'desc';
+
+// สลับทิศทางเมื่อคลิกหัวตารางเดิม
+function sort_link($col, $label, $current_col, $current_dir) {
+    $next_dir = ($current_col === $col && $current_dir === 'asc') ? 'desc' : 'asc';
+    $icon = '';
+    if($current_col === $col) {
+        $icon = $current_dir === 'asc' ? ' ▲' : ' ▼';
+    }
+    return "<a href='products_list.php?sort=$col&dir=$next_dir' style='color:inherit; text-decoration:none; white-space:nowrap;'>$label$icon</a>";
+}
 
 include "sidenav.php";
 include "topheader.php";
@@ -42,10 +54,11 @@ include "topheader.php";
                   <th>รูปภาพ</th>
                   <th>ชื่อสินค้า</th>
                   <th>หมวดหมู่/ยี่ห้อ</th>
-                  <th>ราคาขาย</th>
-                  <th>คงเหลือ</th>
+                  <th><?php echo sort_link('selling_price', 'ราคาขาย', $sort_col, $sort_dir); ?></th>
+                  <th><?php echo sort_link('stock_qty',    'คงเหลือ',  $sort_col, $sort_dir); ?></th>
                   <th>หน่วย</th>
-                  <th>สถานที่เก็บ</th> <th>จัดการ</th>
+                  <th>สถานที่เก็บ</th>
+                  <th>จัดการ</th>
                 </thead>
                 <tbody>
                   <?php 
@@ -54,7 +67,7 @@ include "topheader.php";
                             LEFT JOIN categories c ON p.category_id = c.category_id 
                             LEFT JOIN brands b ON p.brand_id = b.brand_id 
                             LEFT JOIN units u ON p.unit_id = u.unit_id
-                            ORDER BY p.product_id DESC";
+                            ORDER BY p.$sort_col $sort_dir";
                     
                     $result = mysqli_query($con, $sql);
                     
@@ -76,11 +89,7 @@ include "topheader.php";
                             echo "<td>".number_format($row['selling_price'], 2)." ฿</td>";
                             echo "<td style='".$text_color."'>".number_format($row['stock_qty']) . $stock_status ."</td>";
                             echo "<td>".$row['unit_name']."</td>";
-                            
-                            //  2. ดึงข้อมูล location มาแสดงผลในตารางให้ตรงกับหัวตาราง
                             echo "<td>".$row['location']."</td>";
-                            
-                            
                             echo "<td>
                                     <a href='edit_material.php?id=".$row['product_id']."' class='btn btn-warning btn-sm'><i class='material-icons'>edit</i></a>
                                     <a href='products_list.php?delete_id=".$row['product_id']."' class='btn btn-danger btn-sm' onclick='return confirm(\"คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?\")'><i class='material-icons'>delete</i></a>
@@ -88,7 +97,6 @@ include "topheader.php";
                             echo "</tr>";
                         }
                     } else {
-                        
                         echo "<tr><td colspan='9' class='text-center'>ยังไม่มีรายการสินค้าในระบบ</td></tr>";
                     }
                   ?>
@@ -101,5 +109,15 @@ include "topheader.php";
     </div>
   </div>
 </div>
+
+<style>
+/* highlight หัวตารางที่กำลัง sort อยู่ */
+thead.text-primary th a {
+    font-weight: 700;
+}
+thead.text-primary th a:hover {
+    color: #ffd740 !important;
+}
+</style>
 
 <?php include "footer.php"; ?>

@@ -133,6 +133,34 @@ include "topheader.php";
                     </tfoot>
                 </table>
 
+                <?php 
+                $shirt_qty = floor($sum_total / 10000);
+                if($shirt_qty >= 1): 
+                ?>
+                <!-- PROMO BANNER -->
+                <div style="margin: 10px 0; background: linear-gradient(90deg, #16a34a, #22c55e); border-radius: 8px; padding: 12px 20px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:28px;">🎁</span>
+                        <div>
+                            <div style="color:#fff; font-weight:700; font-size:15px;">ยินดีด้วย! คุณได้รับของรางวัลพิเศษ</div>
+                            <div style="color:rgba(255,255,255,0.9); font-size:13px;">
+                                ยอดซื้อ ฿<?php echo number_format($sum_total, 2); ?>
+                                ครบทุก ฿10,000 รับ: <b>แกมเสื้อ <?php echo $shirt_qty; ?> ตัว</b>
+                            </div>
+                            <div style="color:rgba(255,255,255,0.75); font-size:11px; margin-top:2px;">
+                                (คำนวณจาก: <?php echo number_format($sum_total, 2); ?> ÷ 10,000 = <?php echo $shirt_qty; ?> ตัว ปัดเศษลง)
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="background:rgba(255,255,255,0.25); border-radius:6px; padding:5px 14px; color:#fff; font-size:14px; font-weight:700;">
+                            🎽 แกมเสื้อ <?php echo $shirt_qty; ?> ตัว
+                        </div>
+                        <div style="color:rgba(255,255,255,0.8); font-size:11px; margin-top:4px;">มูลค่า: ฟรี!</div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- FOOTER NOTE -->
                 <div class="receipt-footer-note">
                     <p>* ใบเสร็จนี้ออกโดยระบบอัตโนมัติ กรุณาเก็บไว้เป็นหลักฐานการชำระเงิน</p>
