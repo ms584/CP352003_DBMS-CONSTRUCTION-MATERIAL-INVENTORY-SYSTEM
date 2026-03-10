@@ -15,6 +15,24 @@ if(isset($_GET['confirm_pay']) && is_numeric($_GET['confirm_pay'])) {
     }
 }
 
+// ===== ลบบิล (Admin/Manager เท่านั้น) =====
+if(isset($_GET['delete_sale']) && in_array($_SESSION['role'] ?? '', ['Admin','Manager'])) {
+    $del_sid = (int)$_GET['delete_sale'];
+    try {
+        // คืน stock ก่อน
+        $det = mysqli_query($con, "SELECT product_id, qty FROM sales_detail WHERE sale_id = '$del_sid'");
+        while($d = mysqli_fetch_assoc($det)) {
+            mysqli_query($con, "UPDATE products SET stock_qty = stock_qty + ".(int)$d['qty']." WHERE product_id = '".$d['product_id']."'");
+        }
+        mysqli_query($con, "DELETE FROM sales_detail WHERE sale_id = '$del_sid'");
+        mysqli_query($con, "DELETE FROM sales WHERE sale_id = '$del_sid'");
+        echo "<script>alert('ลบบิลและคืน stock เรียบร้อยแล้ว!'); window.location.href='salesofday.php';</script>";
+    } catch(Exception $e) {
+        echo "<script>alert('เกิดข้อผิดพลาด: " . addslashes($e->getMessage()) . "'); window.location.href='salesofday.php';</script>";
+    }
+    exit();
+}
+
 include "sidenav.php";
 include "topheader.php";
 ?>
@@ -97,9 +115,17 @@ include "topheader.php";
                             }
                             echo "</td>";
                             
-                            echo "<td>
-                              <a href='view_bill.php?sale_id=".$row['sale_id']."' class='btn btn-sm btn-info'><i class='material-icons'>visibility</i> ดูรายการสินค้า</a>
-                            </td>";
+                            echo "<td style='white-space:nowrap;'>
+                              <a href='view_bill.php?sale_id=".$row['sale_id']."' class='btn btn-sm btn-info'><i class='material-icons'>visibility</i> ดูรายการสินค้า</a>";
+                            // ปุ่มลบ — Admin/Manager เท่านั้น
+                            $r = $_SESSION['role'] ?? '';
+                            if($r === 'Admin' || $r === 'Manager') {
+                                echo " <a href='#' class='btn btn-sm btn-danger btn-del-sale'
+                                        data-id='".$row['sale_id']."'
+                                        data-receipt='".$row['receipt_no']."'>
+                                        <i class='material-icons'>delete</i></a>";
+                            }
+                            echo "</td>";
                             echo "</tr>";
                         }
                     } else {
@@ -117,4 +143,16 @@ include "topheader.php";
   </div>
 </div>
 
+<script>
+document.querySelectorAll('.btn-del-sale').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var id      = this.dataset.id;
+        var receipt = this.dataset.receipt;
+        if(confirm('ลบบิล ' + receipt + ' ใช่ไหม?\n\n⚠️ สต็อกจะถูกคืนอัตโนมัติสำหรับทุกรายการในบิลนี้')) {
+            window.location.href = 'salesofday.php?delete_sale=' + id;
+        }
+    });
+});
+</script>
 <?php include "footer.php"; ?>

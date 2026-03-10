@@ -4,12 +4,19 @@ include("../../db.php");
 
 // ระบบจัดการ "ลบสินค้า"
 if(isset($_GET['delete_id'])){
-    $del_id = $_GET['delete_id'];
-    $delete_query = "DELETE FROM products WHERE product_id = '$del_id'";
-    if(mysqli_query($con, $delete_query)){
-        echo "<script>alert('ลบรายการสินค้าเรียบร้อยแล้ว!'); window.location.href='products_list.php';</script>";
-    } else {
-        echo "<script>alert('ไม่สามารถลบได้ เนื่องจากสินค้านี้อาจมีประวัติการรับเข้า/เบิกออกผูกอยู่'); window.location.href='products_list.php';</script>";
+    $del_id = (int)$_GET['delete_id'];
+    try {
+        // ลบประวัติที่เกี่ยวข้องก่อน
+        mysqli_query($con, "DELETE FROM receiving_detail WHERE product_id = '$del_id'");
+        mysqli_query($con, "DELETE FROM sales_detail    WHERE product_id = '$del_id'");
+        // product_packaging มี ON DELETE CASCADE แล้ว
+        if(mysqli_query($con, "DELETE FROM products WHERE product_id = '$del_id'")){
+            echo "<script>alert('ลบสินค้าและประวัติที่เกี่ยวข้องเรียบร้อยแล้ว!'); window.location.href='products_list.php';</script>";
+        } else {
+            echo "<script>alert('ไม่สามารถลบได้'); window.location.href='products_list.php';</script>";
+        }
+    } catch(Exception $e) {
+        echo "<script>alert('เกิดข้อผิดพลาด: " . addslashes($e->getMessage()) . "'); window.location.href='products_list.php';</script>";
     }
 }
 
@@ -92,7 +99,11 @@ include "topheader.php";
                             echo "<td>".$row['location']."</td>";
                             echo "<td>
                                     <a href='edit_material.php?id=".$row['product_id']."' class='btn btn-warning btn-sm'><i class='material-icons'>edit</i></a>
-                                    <a href='products_list.php?delete_id=".$row['product_id']."' class='btn btn-danger btn-sm' onclick='return confirm(\"คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?\")'><i class='material-icons'>delete</i></a>
+                                    <a href='#' class='btn btn-danger btn-sm btn-del-product'
+                                       data-id='".$row['product_id']."'
+                                       data-code='".htmlspecialchars($row['product_code'], ENT_QUOTES)."'
+                                       data-name='".htmlspecialchars($row['product_name'], ENT_QUOTES)."'>
+                                      <i class='material-icons'>delete</i></a>
                                   </td>";
                             echo "</tr>";
                         }
@@ -120,4 +131,17 @@ thead.text-primary th a:hover {
 }
 </style>
 
+<script>
+document.querySelectorAll('.btn-del-product').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id   = this.dataset.id;
+        var code = this.dataset.code;
+        var name = this.dataset.name;
+        if(confirm('ต้องการลบสินค้า [' + code + '] ' + name + ' ใช่ไหม?\n\n⚠️ ประวัติการรับเข้า/เบิกออกของสินค้านี้จะถูกลบด้วย')) {
+            window.location.href = 'products_list.php?delete_id=' + id;
+        }
+    });
+});
+</script>
 <?php include "footer.php"; ?>

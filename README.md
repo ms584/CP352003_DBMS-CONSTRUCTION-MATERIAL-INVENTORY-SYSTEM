@@ -242,3 +242,58 @@
 ---
 
 ---
+
+# 📋 สรุปการแก้ไขครั้งที่ 6
+
+## 1. 📦 ระบบการแปลงหน่วย (Unit Conversion / Packaging System)
+ออกแบบและพัฒนาระบบ Packaging ตามมาตรฐาน ERP รองรับการรับสินค้าแบบหลายหน่วยต่อสินค้าเดียว
+
+> ⚠️ **ต้องรัน `Database/packaging_system.sql` ใน phpMyAdmin ก่อนใช้งาน**
+
+### 🗄️ ฐานข้อมูล (`packaging_system.sql`)
+- เพิ่มคอลัมน์ `base_unit` ในตาราง `products` เพื่อระบุหน่วยหลักของ stock (เช่น ถุง, เส้น, ตัว)
+- สร้างตาราง `product_packaging` พร้อม `UNIQUE(product_id, package_unit)` และ `INDEX(product_id)`
+- รองรับหลาย Packaging ต่อสินค้า 1 ชนิด
+
+| สินค้า | Base Unit | Packaging | Rate | ผลลัพธ์ |
+| :--- | :--- | :--- | :--- | :--- |
+| ปูน | ถุง | พาเหรด | 40 | 3 พาเหรด = 120 ถุง |
+| ตะปู | ตัว | ลัง | 2000 | 2 ลัง = 4000 ตัว |
+
+### 🆕 AJAX Endpoint (`get_packaging.php`)
+- รับ `?product_id=X` → return JSON พร้อม label **"1 พาเหรด = 40 ถุง"**
+
+### ✏️ เพิ่มสินค้า (`add_products.php`)
+- เพิ่มช่อง **"หน่วยหลัก (Base Unit)"** แยกจากช่องหน่วยนับ
+- เพิ่ม Section Packaging (optional): เพิ่มสูตรได้หลายแถว พร้อม preview real-time สีเขียว
+- บันทึกลง `product_packaging` อัตโนมัติหลัง INSERT สินค้า
+
+### 📥 รับสินค้าเข้า (`stock_in.php`)
+- เลือกสินค้า → AJAX ดึง Packaging options อัตโนมัติ
+- **Toggle "ใช้หน่วย Packaging"** ปรากฏเมื่อสินค้ามี Packaging กำหนดไว้
+- แสดงผลคำนวณ real-time: `3 พาเหรด × 40 = 120 ถุง`
+- PHP แปลง `pkg_qty × rate → base_unit` ก่อนบันทึก stock
+
+---
+
+## 2. 🗑️ ปุ่มถังขยะ (Delete Buttons)
+
+| หน้า | ผู้มีสิทธิ์ | พิเศษ |
+| :--- | :--- | :--- |
+| `products_list.php` | ตามสิทธิ์ | Cascade ลบ `receiving_detail` + `sales_detail` ก่อน |
+| `receiving_history.php` | Admin | ลบ `receiving_detail` + header พร้อมกัน |
+| `salesofday.php` | Admin / Manager | **คืน Stock อัตโนมัติ** ทุกรายการในบิลก่อนลบ |
+
+ทุกปุ่มแสดง **confirm popup** ก่อนดำเนินการ โดยใช้ `data-*` attributes เพื่อป้องกัน JS quote error
+
+---
+
+## 3. 🐛 Bug Fix
+
+| ปัญหา | สาเหตุ | วิธีแก้ |
+| :--- | :--- | :--- |
+| ลบสินค้า → Fatal Error (FK constraint) | PHP ใหม่ throw exception แทน return false | ครอบ `try/catch` ทุก DELETE |
+| Confirm popup ไม่แสดง — ลบทันที | Single quote ในชื่อสินค้าทำ JS broke | เปลี่ยนเป็น `data-*` attributes + `addEventListener` |
+| Packaging rate ไม่ถูกส่งไป PHP | Inject `<input>` ใน `<tr>` ตอน submit — browser ไม่รวม | ใส่ hidden input ใน row ตั้งแต่ต้น, JS update `.value` เมื่อเลือก |
+
+---
