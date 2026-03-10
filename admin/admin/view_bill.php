@@ -185,16 +185,17 @@ include "topheader.php";
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
-.receipt-header .shop-name { font-size: 20px; font-weight: 700; }
-.receipt-header .shop-sub  { font-size: 11px; opacity: 0.8; margin-top: 4px; }
+.receipt-header .shop-name { font-size: 20px; font-weight: 700; color: #fff !important; }
+.receipt-header .shop-sub  { font-size: 11px; color: rgba(255,255,255,0.9) !important; margin-top: 4px; }
 .receipt-header .doc-info  { text-align: right; }
 .receipt-header .doc-info .receipt-no {
     font-size: 15px; font-weight: 700;
     background: rgba(255,255,255,0.15);
     border-radius: 6px; padding: 4px 12px;
     display: inline-block; margin-bottom: 5px;
+    color: #fff !important;
 }
-.receipt-header .doc-info small { display: block; opacity: 0.85; font-size: 11px; line-height: 1.7; }
+.receipt-header .doc-info small { display: block; color: #fff !important; font-size: 11px; line-height: 1.7; }
 .receipt-info-row {
     display: flex; justify-content: space-between;
     padding: 16px 30px; background: #f9fafb;

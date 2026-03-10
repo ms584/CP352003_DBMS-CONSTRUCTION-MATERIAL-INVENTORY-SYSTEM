@@ -60,7 +60,7 @@ if(isset($_POST['btn_check'])) {
 }
 .receipt-header .shop-sub {
     font-size: 12px;
-    opacity: 0.8;
+    color: rgba(255,255,255,0.9) !important;
     margin-top: 4px;
 }
 .receipt-header .doc-info {
@@ -77,7 +77,7 @@ if(isset($_POST['btn_check'])) {
 }
 .receipt-header .doc-info small {
     display: block;
-    opacity: 0.85;
+    color: #fff !important;
     font-size: 12px;
     line-height: 1.6;
 }
